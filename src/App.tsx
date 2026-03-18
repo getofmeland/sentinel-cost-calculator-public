@@ -31,9 +31,14 @@ function AppShell() {
           {/* Title row */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold tracking-[0.2em] uppercase text-light/50 mb-1">
-                Cloud Security Insider
-              </p>
+              <a
+                href="https://www.cloudsecurityinsider.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold tracking-[0.2em] uppercase text-light/50 hover:text-light/80 transition-colors mb-1 inline-block"
+              >
+                Cloud Security Insider ↗
+              </a>
               <h1 className="text-3xl font-bold tracking-tight">Sentinel Cost Calculator</h1>
               <p className="text-sm text-light/70 mt-1.5 max-w-md">
                 Model your Microsoft Sentinel deployment costs — ingestion, tiers, retention,
@@ -75,6 +80,20 @@ function AppShell() {
           <IngestionEstimator onPresetChange={setActivePresetId} />
         </div>
       </main>
+
+      <footer className="border-t border-white/8 mt-4">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-center gap-1.5 text-xs text-light/30">
+          <span>Built by</span>
+          <a
+            href="https://www.cloudsecurityinsider.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-light/50 hover:text-light/80 transition-colors"
+          >
+            Cloud Security Insider
+          </a>
+        </div>
+      </footer>
     </div>
   )
 }
