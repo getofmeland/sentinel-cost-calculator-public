@@ -2,15 +2,30 @@ import { useState } from 'react'
 import { PricingProvider, usePricing } from './contexts/PricingContext'
 import { IngestionEstimator } from './components/IngestionEstimator'
 import { RegionSelector } from './components/RegionSelector'
+import { FeatureRequestButton } from './components/FeatureRequestButton'
+import { FeatureRequestModal } from './components/FeatureRequestModal'
 import { CompliancePresetId } from './data/compliancePresets'
+import brand from './config/brand'
 
 function AppShell() {
-  const { region, onRegionChange, fxRate, onFxRateChange, isLoading, isLive, lastFetched, onRefresh } = usePricing()
+  const {
+    region, onRegionChange,
+    fxRate, onFxRateChange,
+    displayCurrency, onCurrencyChange,
+    eurRate, onEurRateChange,
+    isLoading, isLive, lastFetched, onRefresh,
+  } = usePricing()
   const [activePresetId, setActivePresetId] = useState<CompliancePresetId>('custom')
+  const [modalOpen, setModalOpen] = useState(false)
+
+  // Hex alpha helpers for inline styles derived from brand colours
+  const primaryAlpha25 = `${brand.colours.primary}40`
+  const primaryAlpha18 = `${brand.colours.primary}2e`
+  const accentAlpha10 = `${brand.colours.accent}1a`
 
   return (
     <div className="min-h-screen bg-dark text-light">
-      <header className="relative overflow-hidden bg-dark text-light" style={{ borderBottom: '1px solid rgba(162,24,255,0.25)' }}>
+      <header className="relative overflow-hidden bg-dark text-light" style={{ borderBottom: `1px solid ${primaryAlpha25}` }}>
         {/* Dot-grid texture */}
         <div
           className="absolute inset-0 opacity-[0.06]"
@@ -24,26 +39,41 @@ function AppShell() {
         <div
           className="absolute inset-0"
           aria-hidden="true"
-          style={{ background: 'linear-gradient(135deg, rgba(162,24,255,0.18) 0%, rgba(255,35,113,0.10) 60%)' }}
+          style={{ background: `linear-gradient(135deg, ${primaryAlpha18} 0%, ${accentAlpha10} 60%)` }}
         />
 
         <div className="relative max-w-5xl mx-auto px-6 py-6 space-y-4">
           {/* Title row */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
             <div>
-              <a
-                href="https://www.cloudsecurityinsider.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-semibold tracking-[0.2em] uppercase text-light/50 hover:text-light/80 transition-colors mb-1 inline-block"
-              >
-                Cloud Security Insider ↗
-              </a>
-              <h1 className="text-3xl font-bold tracking-tight">Sentinel Cost Calculator</h1>
-              <p className="text-sm text-light/70 mt-1.5 max-w-md">
-                Model your Microsoft Sentinel deployment costs — ingestion, tiers, retention,
-                and XDR overlap — before you commit.
-              </p>
+              {brand.websiteUrl && (
+                <a
+                  href={brand.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold tracking-[0.2em] uppercase text-light/50 hover:text-light/80 transition-colors mb-1 inline-block"
+                >
+                  Cloud Security Insider ↗
+                </a>
+              )}
+              <h1 className="text-3xl font-bold tracking-tight">
+                {brand.websiteUrl ? (
+                  <a href={brand.websiteUrl} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+                    {brand.logoUrl ? (
+                      <img src={brand.logoUrl} alt={brand.name} className="h-8 inline-block" />
+                    ) : (
+                      brand.name
+                    )}
+                  </a>
+                ) : brand.logoUrl ? (
+                  <img src={brand.logoUrl} alt={brand.name} className="h-8 inline-block" />
+                ) : (
+                  brand.name
+                )}
+              </h1>
+              {brand.tagline && (
+                <p className="text-sm text-light/70 mt-1.5 max-w-md">{brand.tagline}</p>
+              )}
             </div>
             <div className="text-right flex-shrink-0">
               <p className="text-xs text-light/40 uppercase tracking-widest">Microsoft Sentinel</p>
@@ -51,12 +81,16 @@ function AppShell() {
             </div>
           </div>
 
-          {/* Region + FX controls */}
+          {/* Region + FX + Currency controls */}
           <RegionSelector
             region={region}
             onRegionChange={onRegionChange}
             fxRate={fxRate}
             onFxRateChange={onFxRateChange}
+            displayCurrency={displayCurrency}
+            onCurrencyChange={onCurrencyChange}
+            eurRate={eurRate}
+            onEurRateChange={onEurRateChange}
             isLoading={isLoading}
             isLive={isLive}
             lastFetched={lastFetched}
@@ -84,16 +118,27 @@ function AppShell() {
       <footer className="border-t border-white/8 mt-4 pb-16">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-center gap-1.5 text-xs text-light/30">
           <span>Built by</span>
-          <a
-            href="https://www.cloudsecurityinsider.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-light/50 hover:text-light/80 transition-colors"
-          >
-            Cloud Security Insider
-          </a>
+          {brand.websiteUrl ? (
+            <a
+              href={brand.websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-light/50 hover:text-light/80 transition-colors"
+            >
+              Cloud Security Insider
+            </a>
+          ) : (
+            <span className="text-light/50">Cloud Security Insider</span>
+          )}
         </div>
       </footer>
+
+      {brand.featureRequests.enabled && (
+        <>
+          <FeatureRequestButton hidden={modalOpen} onClick={() => setModalOpen(true)} />
+          <FeatureRequestModal open={modalOpen} onClose={() => setModalOpen(false)} />
+        </>
+      )}
     </div>
   )
 }

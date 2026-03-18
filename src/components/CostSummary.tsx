@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { IngestionSummary } from '../utils/ingestion'
 import { TierOption } from '../utils/tiers'
 import { DAYS_PER_MONTH } from '../data/pricing'
-import { fmtGbp } from '../utils/currency'
+import { fmtCurrency } from '../utils/currency'
 import { usePricing } from '../contexts/PricingContext'
 
 interface Props {
@@ -25,19 +25,23 @@ function SavingBadge({ pct }: { pct: number }) {
   )
 }
 
-function CostCell({ usd, highlight, fxRate }: { usd: number; highlight?: boolean; fxRate: number }) {
+function CostCell({ usd, highlight, fxRate, displayCurrency, eurRate }: {
+  usd: number; highlight?: boolean; fxRate: number; displayCurrency: 'GBP' | 'USD' | 'EUR'; eurRate: number
+}) {
   return (
     <td className={`px-4 py-2.5 text-right font-mono text-sm ${highlight ? 'font-bold text-light' : 'text-light/70'}`}>
-      {fmtGbp(usd, 0, fxRate)}
+      {fmtCurrency(usd, displayCurrency, fxRate, eurRate, 0)}
     </td>
   )
 }
 
-function SavingCell({ usd, fxRate }: { usd: number; fxRate: number }) {
+function SavingCell({ usd, fxRate, displayCurrency, eurRate }: {
+  usd: number; fxRate: number; displayCurrency: 'GBP' | 'USD' | 'EUR'; eurRate: number
+}) {
   if (usd <= 0) return <td className="px-4 py-2.5 text-right text-light/30 text-sm">—</td>
   return (
     <td className="px-4 py-2.5 text-right font-mono text-sm text-primary font-medium">
-      −{fmtGbp(usd, 0, fxRate)}
+      −{fmtCurrency(usd, displayCurrency, fxRate, eurRate, 0)}
     </td>
   )
 }
@@ -50,12 +54,16 @@ export function CostSummary({
   e5SavedMonthlyUsd,
   commitmentOptions,
 }: Props) {
-  const { fxRate } = usePricing()
+  const { fxRate, displayCurrency, eurRate } = usePricing()
   const tierOptions = commitmentOptions.filter(o => !o.isPayg)
   const defaultTier = commitmentOptions.find(o => o.isRecommended && !o.isPayg) ?? tierOptions[0]
   const [selectedTierLabel, setSelectedTierLabel] = useState<string>(defaultTier?.label ?? '')
 
   const selectedTier = tierOptions.find(o => o.label === selectedTierLabel) ?? tierOptions[0]
+
+  function fmt(usd: number) {
+    return fmtCurrency(usd, displayCurrency, fxRate, eurRate, 0)
+  }
 
   // ── Monthly base costs ──────────────────────────────────────────────────
   const analyticsMonthly = summary.analyticsDailyCostUsd * DAYS_PER_MONTH
@@ -148,15 +156,15 @@ export function CostSummary({
             {/* Analytics ingestion */}
             <tr>
               <td className="px-4 py-2.5 text-light/70">Analytics ingestion</td>
-              <CostCell usd={analyticsMonthly} fxRate={fxRate} />
-              <CostCell usd={analyticsMonthly} fxRate={fxRate} />
+              <CostCell usd={analyticsMonthly} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+              <CostCell usd={analyticsMonthly} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
               <td className="px-4 py-2.5 text-right font-mono text-sm text-light/70">
                 {selectedTier
-                  ? <span className="text-primary">{fmtGbp(analyticsCommitmentMonthly, 0, fxRate)}</span>
-                  : fmtGbp(analyticsMonthly, 0, fxRate)}
+                  ? <span className="text-primary">{fmt(analyticsCommitmentMonthly)}</span>
+                  : fmt(analyticsMonthly)}
                 {commitmentAnalyticsSaving > 0 && (
                   <span className="block text-[10px] text-primary/70 font-normal">
-                    −{fmtGbp(commitmentAnalyticsSaving, 0, fxRate)} committed
+                    −{fmt(commitmentAnalyticsSaving)} committed
                   </span>
                 )}
               </td>
@@ -165,34 +173,34 @@ export function CostSummary({
             {/* Data Lake ingestion */}
             <tr>
               <td className="px-4 py-2.5 text-light/70">Data Lake ingestion</td>
-              <CostCell usd={dataLakeMonthly} fxRate={fxRate} />
-              <CostCell usd={dataLakeMonthly} fxRate={fxRate} />
-              <CostCell usd={dataLakeMonthly} fxRate={fxRate} />
+              <CostCell usd={dataLakeMonthly} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+              <CostCell usd={dataLakeMonthly} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+              <CostCell usd={dataLakeMonthly} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
             </tr>
 
             {/* Extended retention — three conditional rows */}
             {summary.analyticsExtendedRetentionMonthlyCostUsd > 0 && (
               <tr>
                 <td className="px-4 py-2.5 text-light/70">Analytics extended retention</td>
-                <CostCell usd={summary.analyticsExtendedRetentionMonthlyCostUsd} fxRate={fxRate} />
-                <CostCell usd={summary.analyticsExtendedRetentionMonthlyCostUsd} fxRate={fxRate} />
-                <CostCell usd={summary.analyticsExtendedRetentionMonthlyCostUsd} fxRate={fxRate} />
+                <CostCell usd={summary.analyticsExtendedRetentionMonthlyCostUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+                <CostCell usd={summary.analyticsExtendedRetentionMonthlyCostUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+                <CostCell usd={summary.analyticsExtendedRetentionMonthlyCostUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
               </tr>
             )}
             {summary.dataLakeMirrorRetentionMonthlyCostUsd > 0 && (
               <tr>
                 <td className="px-4 py-2.5 text-light/70">Data Lake mirror retention</td>
-                <CostCell usd={summary.dataLakeMirrorRetentionMonthlyCostUsd} fxRate={fxRate} />
-                <CostCell usd={summary.dataLakeMirrorRetentionMonthlyCostUsd} fxRate={fxRate} />
-                <CostCell usd={summary.dataLakeMirrorRetentionMonthlyCostUsd} fxRate={fxRate} />
+                <CostCell usd={summary.dataLakeMirrorRetentionMonthlyCostUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+                <CostCell usd={summary.dataLakeMirrorRetentionMonthlyCostUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+                <CostCell usd={summary.dataLakeMirrorRetentionMonthlyCostUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
               </tr>
             )}
             {summary.dataLakeNativeRetentionMonthlyCostUsd > 0 && (
               <tr>
                 <td className="px-4 py-2.5 text-light/70">Data Lake long-term retention</td>
-                <CostCell usd={summary.dataLakeNativeRetentionMonthlyCostUsd} fxRate={fxRate} />
-                <CostCell usd={summary.dataLakeNativeRetentionMonthlyCostUsd} fxRate={fxRate} />
-                <CostCell usd={summary.dataLakeNativeRetentionMonthlyCostUsd} fxRate={fxRate} />
+                <CostCell usd={summary.dataLakeNativeRetentionMonthlyCostUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+                <CostCell usd={summary.dataLakeNativeRetentionMonthlyCostUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+                <CostCell usd={summary.dataLakeNativeRetentionMonthlyCostUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
               </tr>
             )}
 
@@ -212,8 +220,8 @@ export function CostSummary({
                 )}
               </td>
               <td className="px-4 py-2.5 text-right text-light/30 text-sm">—</td>
-              <SavingCell usd={defenderSavedMonthlyUsd} fxRate={fxRate} />
-              <SavingCell usd={defenderSavedMonthlyUsd} fxRate={fxRate} />
+              <SavingCell usd={defenderSavedMonthlyUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+              <SavingCell usd={defenderSavedMonthlyUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
             </tr>
 
             {/* M365 E5 data grant saving */}
@@ -229,24 +237,24 @@ export function CostSummary({
                 )}
               </td>
               <td className="px-4 py-2.5 text-right text-light/30 text-sm">—</td>
-              <SavingCell usd={e5SavedMonthlyUsd} fxRate={fxRate} />
-              <SavingCell usd={e5SavedMonthlyUsd} fxRate={fxRate} />
+              <SavingCell usd={e5SavedMonthlyUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
+              <SavingCell usd={e5SavedMonthlyUsd} fxRate={fxRate} displayCurrency={displayCurrency} eurRate={eurRate} />
             </tr>
 
             {/* Total rows */}
             <tr className="border-t-2 border-white/10" style={{ background: '#252838' }}>
               <td className="px-4 py-4 font-semibold text-light/50 text-xs uppercase tracking-widest">Monthly total</td>
               <td className="px-4 py-4 text-right">
-                <span className="text-2xl font-bold font-mono text-light">{fmtGbp(paygTotal, 0, fxRate)}</span>
+                <span className="text-2xl font-bold font-mono text-light">{fmt(paygTotal)}</span>
               </td>
               <td className="px-4 py-4 text-right">
                 <span className={`text-2xl font-bold font-mono ${totalSavings > 0 ? 'text-primary' : 'text-light'}`}>
-                  {fmtGbp(withSavingsTotal, 0, fxRate)}
+                  {fmt(withSavingsTotal)}
                 </span>
               </td>
               <td className="px-4 py-4 text-right">
                 <span className={`text-2xl font-bold font-mono ${optimisedPct > 0 ? 'text-primary' : 'text-light'}`}>
-                  {fmtGbp(commitmentOptimisedTotal, 0, fxRate)}
+                  {fmt(commitmentOptimisedTotal)}
                 </span>
                 {optimisedPct > 0 && (
                   <span className="ml-2 inline-block bg-accent text-dark text-xs font-bold px-1.5 py-0.5 rounded">

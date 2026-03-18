@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { usePricing } from '../contexts/PricingContext'
 import { costAtVolume, breakevenForTier } from '../utils/tiers'
 import { CommitmentTier } from '../data/pricing'
+import { fmtCurrency, CurrencyCode } from '../utils/currency'
+import brand from '../config/brand'
 
 interface Props {
   billableGbPerDay: number
@@ -15,8 +17,8 @@ const PLOT_W = SVG_W - MARGIN.left - MARGIN.right
 const PLOT_H = SVG_H - MARGIN.top - MARGIN.bottom
 
 const COLOR_PAYG = '#6B7D8F'
-const COLOR_BEST = '#F1B434'
-const TIER_COLORS = ['#00A3AD', '#0095C8', '#E87722', '#115E67', '#8B5CF6', '#10B981', '#F472B6']
+const COLOR_BEST = brand.colours.accent
+const TIER_COLORS = ['#06B6D4', '#3B82F6', '#F97316', '#0F766E', '#8B5CF6', '#10B981', '#F472B6']
 
 const Y_TICK_CANDIDATES = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 25000, 50000, 100000, 250000]
 
@@ -43,15 +45,10 @@ function computeSmartYTicks(rawYMax: number): number[] {
   return Array.from({ length: 6 }, (_, i) => i * interval)
 }
 
-function toDisplay(usd: number, showGbp: boolean, fxRate: number): number {
-  return showGbp ? usd * fxRate : usd
-}
-
-function fmtCurrency(value: number, showGbp: boolean): string {
-  if (showGbp) {
-    return `£${value.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
-  }
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+function toDisplay(usd: number, currency: CurrencyCode, fxRate: number, eurRate: number): number {
+  if (currency === 'GBP') return usd * fxRate
+  if (currency === 'EUR') return usd * eurRate
+  return usd
 }
 
 function scaleX(gb: number, xMax: number): number {
@@ -68,7 +65,7 @@ function tierColor(tier: CommitmentTier, tiers: CommitmentTier[], isBest: boolea
 }
 
 export function BreakevenChart({ billableGbPerDay, dataLakeGbPerDay = 0 }: Props) {
-  const { pricing, fxRate } = usePricing()
+  const { pricing, fxRate, displayCurrency, eurRate } = usePricing()
   const { commitmentTiers, paygRateUsd } = pricing
 
   // Debounced billable for axis recalculation (200ms delay)
@@ -79,7 +76,6 @@ export function BreakevenChart({ billableGbPerDay, dataLakeGbPerDay = 0 }: Props
   }, [billableGbPerDay])
 
   const [showFullRange, setShowFullRange] = useState(false)
-  const [showGbp, setShowGbp] = useState(true)
   const [enabledTiers, setEnabledTiers] = useState<Set<number>>(() => new Set(commitmentTiers.map(t => t.gbPerDay)))
 
   // Hover tooltip
@@ -136,12 +132,20 @@ export function BreakevenChart({ billableGbPerDay, dataLakeGbPerDay = 0 }: Props
     xMax * paygRateUsd,
     ...visibleTiers.map(t => costAtVolume(t, xMax)),
   ) * 1.15
-  const rawYMaxDisplay = toDisplay(rawYMaxUsd, showGbp, fxRate)
+  const rawYMaxDisplay = toDisplay(rawYMaxUsd, displayCurrency, fxRate, eurRate)
   const yTicks = computeSmartYTicks(rawYMaxDisplay)
   const yMax = yTicks[yTicks.length - 1]
 
   function yForCostUsd(usd: number): number {
-    return scaleY(toDisplay(usd, showGbp, fxRate), yMax)
+    return scaleY(toDisplay(usd, displayCurrency, fxRate, eurRate), yMax)
+  }
+
+  function fmtAxis(value: number): string {
+    return fmtCurrency(
+      displayCurrency === 'GBP' ? value / fxRate :
+      displayCurrency === 'EUR' ? value / eurRate : value,
+      displayCurrency, fxRate, eurRate, 0
+    )
   }
 
   const isEmpty = billableGbPerDay === 0
@@ -162,31 +166,7 @@ export function BreakevenChart({ billableGbPerDay, dataLakeGbPerDay = 0 }: Props
   return (
     <div>
       {/* Controls */}
-      <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setShowGbp(true)}
-            className={`px-2 py-0.5 text-[11px] rounded border transition-colors ${
-              showGbp
-                ? 'bg-primary text-white border-primary'
-                : 'border-white/15 text-light/50 hover:bg-white/5'
-            }`}
-          >
-            GBP
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowGbp(false)}
-            className={`px-2 py-0.5 text-[11px] rounded border transition-colors ${
-              !showGbp
-                ? 'bg-primary text-white border-primary'
-                : 'border-white/15 text-light/50 hover:bg-white/5'
-            }`}
-          >
-            USD
-          </button>
-        </div>
+      <div className="flex items-center justify-end mb-3 gap-2 flex-wrap">
         <button
           type="button"
           onClick={() => setShowFullRange(v => !v)}
@@ -281,7 +261,7 @@ export function BreakevenChart({ billableGbPerDay, dataLakeGbPerDay = 0 }: Props
             <g key={`yt-${v}`}>
               <line x1={MARGIN.left - 4} y1={y} x2={MARGIN.left} y2={y} stroke="rgba(255,255,255,0.20)" strokeWidth={1} />
               <text x={MARGIN.left - 8} y={y + 3.5} textAnchor="end" fontSize={9} fill="rgba(255,255,255,0.35)">
-                {fmtCurrency(v, showGbp)}
+                {fmtAxis(v)}
               </text>
             </g>
           )
@@ -446,10 +426,10 @@ export function BreakevenChart({ billableGbPerDay, dataLakeGbPerDay = 0 }: Props
           const onRight = gb < xMax * 0.65
 
           const lines = [
-            { label: 'PAYG', value: toDisplay(paygUsd, showGbp, fxRate), color: COLOR_PAYG },
+            { label: 'PAYG', usd: paygUsd, color: COLOR_PAYG },
             ...tierCosts.map(({ tier, usd }) => ({
               label: `${tier.gbPerDay} GB/day`,
-              value: toDisplay(usd, showGbp, fxRate),
+              usd,
               color: tierColor(tier, commitmentTiers, !paygIsBest && tier === bestTier),
             })),
           ]
@@ -485,7 +465,7 @@ export function BreakevenChart({ billableGbPerDay, dataLakeGbPerDay = 0 }: Props
                 {gb.toFixed(1)} GB/day
               </text>
               {/* Cost lines */}
-              {lines.map(({ label, value, color }, i) => (
+              {lines.map(({ label, usd, color }, i) => (
                 <g key={label}>
                   <rect
                     x={tx + padding} y={ty + padding + lineH * (i + 1) + 3}
@@ -497,7 +477,7 @@ export function BreakevenChart({ billableGbPerDay, dataLakeGbPerDay = 0 }: Props
                     fontSize={9}
                     fill="rgba(255,255,255,0.70)"
                   >
-                    {label}: {fmtCurrency(value, showGbp)}
+                    {label}: {fmtCurrency(usd, displayCurrency, fxRate, eurRate, 0)}
                   </text>
                 </g>
               ))}

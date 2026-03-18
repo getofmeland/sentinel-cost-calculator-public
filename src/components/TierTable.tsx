@@ -1,13 +1,10 @@
 import { TierOption } from '../utils/tiers'
-import { fmtBoth } from '../utils/currency'
+import { fmtCurrency } from '../utils/currency'
+import { usePricing } from '../contexts/PricingContext'
 
 interface Props {
   options: TierOption[]
   billableGbPerDay: number
-}
-
-function fmt(usd: number): string {
-  return fmtBoth(usd)
 }
 
 // C5: Unicode arrows wrapped in aria-hidden; screen-reader text provided via sr-only
@@ -32,6 +29,12 @@ function SavingsCell({ pct, isRec }: { pct: number | null; isRec: boolean }) {
 }
 
 export function TierTable({ options, billableGbPerDay }: Props) {
+  const { fxRate, displayCurrency, eurRate } = usePricing()
+
+  function fmt(usd: number) {
+    return fmtCurrency(usd, displayCurrency, fxRate, eurRate, 2)
+  }
+
   if (billableGbPerDay === 0) {
     return (
       <div className="px-6 py-8 text-center">

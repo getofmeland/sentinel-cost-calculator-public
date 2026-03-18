@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { PricingBundle, STATIC_PRICING_BUNDLE, EXCHANGE_RATE_USD_TO_GBP } from '../data/pricing'
-import { fetchSentinelPricing, clearRegionCache, DEFAULT_REGION, getRegionLabel } from '../services/azurePricing'
+import { fetchSentinelPricing, clearRegionCache, getRegionLabel } from '../services/azurePricing'
+import { CurrencyCode } from '../utils/currency'
+import brand from '../config/brand'
 
 interface PricingContextValue {
   region: string
@@ -8,6 +10,10 @@ interface PricingContextValue {
   onRegionChange: (arm: string) => void
   fxRate: number
   onFxRateChange: (rate: number) => void
+  displayCurrency: CurrencyCode
+  onCurrencyChange: (currency: CurrencyCode) => void
+  eurRate: number
+  onEurRateChange: (rate: number) => void
   isLoading: boolean
   isLive: boolean
   lastFetched: string | null
@@ -18,8 +24,10 @@ interface PricingContextValue {
 const PricingContext = createContext<PricingContextValue | null>(null)
 
 export function PricingProvider({ children }: { children: React.ReactNode }) {
-  const [region, setRegion] = useState(DEFAULT_REGION)
+  const [region, setRegion] = useState(brand.defaults.region)
   const [fxRate, setFxRate] = useState(EXCHANGE_RATE_USD_TO_GBP)
+  const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>(brand.defaults.currency)
+  const [eurRate, setEurRate] = useState(0.92)
   const [pricing, setPricing] = useState<PricingBundle>(STATIC_PRICING_BUNDLE)
   const [isLoading, setIsLoading] = useState(false)
   const [isLive, setIsLive] = useState(false)
@@ -66,6 +74,10 @@ export function PricingProvider({ children }: { children: React.ReactNode }) {
     onRegionChange: handleRegionChange,
     fxRate,
     onFxRateChange: handleFxRateChange,
+    displayCurrency,
+    onCurrencyChange: setDisplayCurrency,
+    eurRate,
+    onEurRateChange: setEurRate,
     isLoading,
     isLive,
     lastFetched,

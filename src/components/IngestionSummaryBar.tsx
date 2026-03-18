@@ -1,5 +1,5 @@
 import { IngestionSummary } from '../utils/ingestion'
-import { fmtGbp } from '../utils/currency'
+import { fmtCurrency } from '../utils/currency'
 import { usePricing } from '../contexts/PricingContext'
 
 interface IngestionSummaryBarProps {
@@ -7,8 +7,14 @@ interface IngestionSummaryBarProps {
 }
 
 export function IngestionSummaryBar({ summary }: IngestionSummaryBarProps) {
-  const { pricing, fxRate } = usePricing()
-  const dataLakeRateGbp = (pricing.dataLakeRateUsd * fxRate).toFixed(2)
+  const { pricing, fxRate, displayCurrency, eurRate } = usePricing()
+
+  function fmt(usd: number, decimals = 0) {
+    return fmtCurrency(usd, displayCurrency, fxRate, eurRate, decimals)
+  }
+
+  const dataLakeRateConverted = fmtCurrency(pricing.dataLakeRateUsd, displayCurrency, fxRate, eurRate, 2)
+
   if (summary.rows.length === 0) {
     return (
       <div className="mt-4 p-4 rounded-lg bg-dark border border-white/10">
@@ -42,7 +48,7 @@ export function IngestionSummaryBar({ summary }: IngestionSummaryBarProps) {
         <div className="flex-1 rounded-lg px-4 py-4 bg-[#252838] border border-white/10">
           <p className="text-[10px] font-semibold text-light/40 uppercase tracking-widest">Daily cost</p>
           <p className="text-4xl font-bold font-mono mt-1 leading-none text-light">
-            {fmtGbp(summary.totalDailyCostUsd, 0, fxRate)}
+            {fmt(summary.totalDailyCostUsd)}
           </p>
           <p className="text-xs text-light/40 mt-1">${summary.totalDailyCostUsd.toFixed(0)} USD · PAYG</p>
         </div>
@@ -56,7 +62,7 @@ export function IngestionSummaryBar({ summary }: IngestionSummaryBarProps) {
           <p className="text-3xl font-bold font-mono mt-1 leading-none text-warning">{summary.analyticsGbPerDay.toFixed(2)}</p>
           <p className="text-xs text-light/50 mt-1">GB/day</p>
           <p className="text-xs text-light/50 mt-1.5">
-            {fmtGbp(summary.analyticsDailyCostUsd, 0, fxRate)}/day
+            {fmt(summary.analyticsDailyCostUsd)}/day
             <span className="text-light/40"> · commitment tiers apply</span>
           </p>
         </div>
@@ -67,7 +73,7 @@ export function IngestionSummaryBar({ summary }: IngestionSummaryBarProps) {
           <p className="text-3xl font-bold font-mono mt-1 leading-none text-primary">{summary.dataLakeGbPerDay.toFixed(2)}</p>
           <p className="text-xs text-light/50 mt-1">GB/day</p>
           <p className="text-xs text-light/50 mt-1.5">
-            {fmtGbp(summary.dataLakeDailyCostUsd, 0, fxRate)}/day · £{dataLakeRateGbp}/GB · 30-day free retention
+            {fmt(summary.dataLakeDailyCostUsd)}/day · {dataLakeRateConverted}/GB · 30-day free retention
           </p>
         </div>
       </div>
@@ -80,19 +86,19 @@ export function IngestionSummaryBar({ summary }: IngestionSummaryBarProps) {
             {analyticsExtended > 0 && (
               <div className="flex items-center justify-between">
                 <span className="text-xs text-light/50">Analytics extended</span>
-                <span className="text-sm font-bold font-mono text-light">{fmtGbp(analyticsExtended, 2, fxRate)}/mo</span>
+                <span className="text-sm font-bold font-mono text-light">{fmt(analyticsExtended, 2)}/mo</span>
               </div>
             )}
             {dataLakeMirror > 0 && (
               <div className={`flex items-center justify-between ${analyticsExtended > 0 ? 'pt-2 border-t border-accent/40' : ''}`}>
                 <span className="text-xs text-light/50">Data Lake mirror</span>
-                <span className="text-sm font-bold font-mono text-primary">{fmtGbp(dataLakeMirror, 2, fxRate)}/mo</span>
+                <span className="text-sm font-bold font-mono text-primary">{fmt(dataLakeMirror, 2)}/mo</span>
               </div>
             )}
             {dataLakeNative > 0 && (
               <div className={`flex items-center justify-between ${(analyticsExtended > 0 || dataLakeMirror > 0) ? 'pt-2 border-t border-accent/40' : ''}`}>
                 <span className="text-xs text-light/50">Data Lake long-term</span>
-                <span className="text-sm font-bold font-mono text-light">{fmtGbp(dataLakeNative, 2, fxRate)}/mo</span>
+                <span className="text-sm font-bold font-mono text-light">{fmt(dataLakeNative, 2)}/mo</span>
               </div>
             )}
           </div>

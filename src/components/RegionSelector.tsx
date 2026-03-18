@@ -1,10 +1,15 @@
 import { AZURE_REGION_GROUPS } from '../services/azurePricing'
+import { CurrencyCode } from '../utils/currency'
 
 interface Props {
   region: string
   onRegionChange: (arm: string) => void
   fxRate: number
   onFxRateChange: (rate: number) => void
+  displayCurrency: CurrencyCode
+  onCurrencyChange: (currency: CurrencyCode) => void
+  eurRate: number
+  onEurRateChange: (rate: number) => void
   isLoading: boolean
   isLive: boolean
   lastFetched: string | null
@@ -14,12 +19,17 @@ interface Props {
 
 const UK_RESIDENCY_PRESETS = new Set(['fca-general', 'fca-mifid2', 'nhs-dspt'])
 const UK_REGIONS = new Set(['uksouth', 'ukwest'])
+const CURRENCIES: CurrencyCode[] = ['GBP', 'USD', 'EUR']
 
 export function RegionSelector({
   region,
   onRegionChange,
   fxRate,
   onFxRateChange,
+  displayCurrency,
+  onCurrencyChange,
+  eurRate,
+  onEurRateChange,
   isLoading,
   isLive,
   lastFetched,
@@ -80,25 +90,68 @@ export function RegionSelector({
           </button>
         </div>
 
-        {/* FX rate */}
+        {/* Currency selector */}
         <div className="flex items-center gap-1.5">
-          <label htmlFor="fx-rate-input" className="text-xs text-light/70 whitespace-nowrap">
-            £ GBP rate:
-          </label>
-          <input
-            id="fx-rate-input"
-            type="number"
-            step={0.01}
-            min={0.1}
-            max={5}
-            value={fxRate}
-            onChange={e => {
-              const val = parseFloat(e.target.value)
-              if (!isNaN(val) && val >= 0.1 && val <= 5) onFxRateChange(val)
-            }}
-            className="w-20 bg-white/10 border border-white/20 text-light rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-white/40"
-          />
+          <span className="text-xs text-light/70 whitespace-nowrap">Currency:</span>
+          <div className="flex rounded-md overflow-hidden border border-white/20">
+            {CURRENCIES.map(c => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => onCurrencyChange(c)}
+                className={`px-2.5 py-1.5 text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 ${
+                  displayCurrency === c
+                    ? 'bg-white/20 text-light font-semibold'
+                    : 'bg-white/5 text-light/50 hover:bg-white/10'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* FX rate input — GBP or EUR */}
+        {displayCurrency === 'GBP' && (
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="fx-rate-input" className="text-xs text-light/70 whitespace-nowrap">
+              1 USD = £
+            </label>
+            <input
+              id="fx-rate-input"
+              type="number"
+              step={0.01}
+              min={0.1}
+              max={5}
+              value={fxRate}
+              onChange={e => {
+                const val = parseFloat(e.target.value)
+                if (!isNaN(val) && val >= 0.1 && val <= 5) onFxRateChange(val)
+              }}
+              className="w-20 bg-white/10 border border-white/20 text-light rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-white/40"
+            />
+          </div>
+        )}
+        {displayCurrency === 'EUR' && (
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="eur-rate-input" className="text-xs text-light/70 whitespace-nowrap">
+              1 USD = €
+            </label>
+            <input
+              id="eur-rate-input"
+              type="number"
+              step={0.01}
+              min={0.1}
+              max={5}
+              value={eurRate}
+              onChange={e => {
+                const val = parseFloat(e.target.value)
+                if (!isNaN(val) && val >= 0.1 && val <= 5) onEurRateChange(val)
+              }}
+              className="w-20 bg-white/10 border border-white/20 text-light rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-white/40"
+            />
+          </div>
+        )}
       </div>
 
       {/* Status line */}

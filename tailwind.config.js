@@ -7,6 +7,7 @@ export default {
         sans: ['DM Sans', 'system-ui', 'sans-serif'],
         mono: ['DM Mono', 'ui-monospace', 'monospace'],
       },
+      // Brand colours — source of truth is src/config/brand.ts. Mirror values here when updating.
       colors: {
         'primary':  '#a218ff',
         'accent':   '#ff2371',

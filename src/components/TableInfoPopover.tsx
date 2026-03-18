@@ -129,7 +129,7 @@ export function TableInfoPopover({ sourceId, sourceName }: Props) {
           border border-teal-500/40 text-teal-400 hover:bg-teal-500/15 hover:border-teal-400
           transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal-400
           flex-shrink-0"
-        style={{ color: '#00A3AD', borderColor: 'rgba(0,163,173,0.35)' }}
+        style={{ color: '#06B6D4', borderColor: 'rgba(6,182,212,0.35)' }}
       >
         i
       </button>
@@ -185,7 +185,7 @@ export function TableInfoPopover({ sourceId, sourceName }: Props) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-mono text-[11px] font-medium whitespace-nowrap hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal-400 rounded"
-                    style={{ color: '#00A3AD' }}
+                    style={{ color: '#06B6D4' }}
                   >
                     ↗ {table.name}
                   </a>
@@ -226,8 +226,8 @@ export function TableInfoPopover({ sourceId, sourceName }: Props) {
 
           {/* Note */}
           {mapping.note && (
-            <div className="mx-3 mb-2 flex items-start gap-2 px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: 'rgba(0,163,173,0.08)', border: '1px solid rgba(0,163,173,0.18)' }}>
-              <span className="flex-shrink-0 text-[10px]" style={{ color: '#00A3AD' }}>ℹ</span>
+            <div className="mx-3 mb-2 flex items-start gap-2 px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.18)' }}>
+              <span className="flex-shrink-0 text-[10px]" style={{ color: '#06B6D4' }}>ℹ</span>
               <p className="text-[10px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
                 {mapping.note}
               </p>

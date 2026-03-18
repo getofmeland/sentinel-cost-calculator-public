@@ -1,4 +1,6 @@
-import { fmtGbp } from '../utils/currency'
+import { fmtCurrency } from '../utils/currency'
+import { usePricing } from '../contexts/PricingContext'
+import brand from '../config/brand'
 
 interface Props {
   paygMonthly: number
@@ -8,14 +10,19 @@ interface Props {
 }
 
 export function StickyTotalBar({ paygMonthly, withSavingsMonthly, optimisedMonthly, isEmpty }: Props) {
+  const { displayCurrency, fxRate, eurRate } = usePricing()
   const savingsPct = paygMonthly > 0
     ? Math.round(((paygMonthly - optimisedMonthly) / paygMonthly) * 100)
     : 0
 
+  function fmt(usd: number) {
+    return fmtCurrency(usd, displayCurrency, fxRate, eurRate, 0)
+  }
+
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 shadow-2xl"
-      style={{ background: '#191c26' }}
+      style={{ background: brand.colours.dark }}
     >
       <div className="max-w-5xl mx-auto px-6 py-3">
         {isEmpty ? (
@@ -31,7 +38,7 @@ export function StickyTotalBar({ paygMonthly, withSavingsMonthly, optimisedMonth
                 PAYG baseline
               </span>
               <span className="text-xl font-bold font-mono text-light/60">
-                {fmtGbp(paygMonthly, 0)}
+                {fmt(paygMonthly)}
                 <span className="text-xs font-normal text-light/30 ml-1">/mo</span>
               </span>
             </div>
@@ -45,7 +52,7 @@ export function StickyTotalBar({ paygMonthly, withSavingsMonthly, optimisedMonth
                 After savings
               </span>
               <span className={`text-xl font-bold font-mono ${withSavingsMonthly < paygMonthly ? 'text-primary' : 'text-light/60'}`}>
-                {fmtGbp(withSavingsMonthly, 0)}
+                {fmt(withSavingsMonthly)}
                 <span className="text-xs font-normal text-light/30 ml-1">/mo</span>
               </span>
             </div>
@@ -60,7 +67,7 @@ export function StickyTotalBar({ paygMonthly, withSavingsMonthly, optimisedMonth
               </span>
               <div className="flex items-baseline gap-2">
                 <span className={`text-xl font-bold font-mono ${optimisedMonthly < paygMonthly ? 'text-accent' : 'text-light/60'}`}>
-                  {fmtGbp(optimisedMonthly, 0)}
+                  {fmt(optimisedMonthly)}
                   <span className="text-xs font-normal text-light/30 ml-1">/mo</span>
                 </span>
                 {savingsPct > 0 && (

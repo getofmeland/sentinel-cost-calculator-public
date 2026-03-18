@@ -1,5 +1,7 @@
 import { EXCHANGE_RATE_USD_TO_GBP } from '../data/pricing'
 
+export type CurrencyCode = 'GBP' | 'USD' | 'EUR'
+
 /** Format USD as GBP only: "£1,234.56" */
 export function fmtGbp(usd: number, decimals = 2, fxRate = EXCHANGE_RATE_USD_TO_GBP): string {
   const gbp = usd * fxRate
@@ -12,4 +14,31 @@ export function fmtGbp(usd: number, decimals = 2, fxRate = EXCHANGE_RATE_USD_TO_
 /** Format USD as "£X.XX ($X.XX)" — GBP primary, USD secondary */
 export function fmtBoth(usd: number, decimals = 2, fxRate = EXCHANGE_RATE_USD_TO_GBP): string {
   return `${fmtGbp(usd, decimals, fxRate)} ($${usd.toFixed(decimals)})`
+}
+
+/**
+ * Format a USD amount in the specified display currency.
+ * @param usd - Amount in USD
+ * @param currency - Target display currency
+ * @param fxRateGbp - USD→GBP exchange rate (e.g. 0.79)
+ * @param fxRateEur - USD→EUR exchange rate (e.g. 0.92)
+ * @param decimals - Number of decimal places
+ */
+export function fmtCurrency(
+  usd: number,
+  currency: CurrencyCode,
+  fxRateGbp = EXCHANGE_RATE_USD_TO_GBP,
+  fxRateEur = 0.92,
+  decimals = 0,
+): string {
+  if (currency === 'GBP') {
+    const gbp = usd * fxRateGbp
+    return `£${gbp.toLocaleString('en-GB', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`
+  }
+  if (currency === 'EUR') {
+    const eur = usd * fxRateEur
+    return `€${eur.toLocaleString('en-GB', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`
+  }
+  // USD
+  return `$${usd.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`
 }

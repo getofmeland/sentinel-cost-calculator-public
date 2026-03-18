@@ -26,6 +26,9 @@ dist-ssr/
 .DS_Store
 Thumbs.db
 
+# Azure Functions local settings (contains secrets)
+api/local.settings.json
+
 # Logs
 *.log
 npm-debug.log*

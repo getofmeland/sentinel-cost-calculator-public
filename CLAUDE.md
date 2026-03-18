@@ -9,26 +9,26 @@ or optimising their Sentinel spend.
 - React with TypeScript
 - Tailwind CSS for styling
 - Vite for build tooling
-- No backend required — all calculations run client-side
+- Azure Functions (Node.js) for the feature-request API
+- No backend required for calculations — all pricing logic runs client-side
 
 ## Key Features
 1. Log source ingestion estimator (GB/day per source)
 2. Commitment tier vs pay-as-you-go cost comparison
 3. Defender XDR vs Sentinel overlap/savings analysis
+4. Feature request form (floating button → Azure Functions → GitHub Issues)
 
 ## Conventions
 - Use UK English in all user-facing text
-- Currency displays in both GBP and USD
-- All pricing data lives in src/data/ for easy updates
-- Components go in src/components/
-- Utility/calculation functions go in src/utils/
+- Currency displays in GBP, USD, or EUR (user-selectable)
+- All pricing data lives in `src/data/` for easy updates
+- Components go in `src/components/`
+- Utility/calculation functions go in `src/utils/`
 
-## Brand — Brightsolid
-- Primary colour: Solid Green #115E67
-- Accent colour: Bright Yellow #F1B434
-- Secondary: Teal #00A3AD, Blue #0095C8, Orange #E87722
-- White: #FFFFFF
-- Dark text: #1A1A2E
+## Brand customisation
+All brand values (colours, name, logo, default currency/region, feature request toggle) live in
+`src/config/brand.ts`. See `CUSTOMISATION.md` for a full walkthrough.
+Tailwind colour tokens mirror brand.ts — update both together.
 
 ## Commands
 - `npm run dev` — Start dev server
